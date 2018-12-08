@@ -24,7 +24,7 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
         self.x = 10
         self.y = 10
         self.speed=0.1
-        self.speed_move=0.1
+        self.speed_move=0.3
         self.mapa = mapa_ocupacion.MapaOcupacion(
             200, 200, self.width, self.height, self.x, self.y)
         self.angular_speed = self.speed*2*pi/360
@@ -223,19 +223,25 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
             if (abs(vals[1])>max_y ):
                 max_y=abs(vals[1])
         print "altura: ",max_y*100," , brazo:",self.matrix_DH.getMultiMatrix().item(1,3)+30,max_y*100 > float(self.matrix_DH.getMultiMatrix().item(1,3)+30) 
-        if (max_y*100 < (self.matrix_DH.getMultiMatrix().item(1,3)+30) ):
+        if (max_y*100 < (self.matrix_DH.getMultiMatrix().item(1,3)) ):
             print "no pasa"
             self.girar(90)#izquierda
             self.move_distance(0.80,self.speed_move)
             self.girar(90,-0.1)#derecha
-            self.move_distance(1,self.speed_move)
+            self.move_distance(1.7,self.speed_move)
+
+            #cuadrado
+            self.mover_con_sensor('right')
         else:
             print "si pasa"
             self.move_distance(1,self.speed_move)
 
 
+    
+
+
     def mover_distancia(self):
-        # import pudb;pudb.set_trace()
+        
         vel_msg = Twist()
 
         vel_msg.linear.x = self.speed_move
@@ -248,18 +254,12 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
         while detect == self.rear.range:
             a = self.rear.range
         detect = self.rear.range
-
         t0 = float(rospy.Time.now().to_sec())
         current_distance = 0
-        meta = abs(self.odom_x)+self.square_x  # self.rear.range-self.square_x
+        meta = abs(self.odom_x)+self.square_x
         tmp_distance = meta
-        # self.rear.range > self.square_x:  # (abs(current_distance) < distance):
         while True:
-            # print current_distance, ' ', distance, " meta", meta, "(x: " + str(
-            #     self.x), " - y:"+str(self.y) + ") range ", self.rear.range
             print "(x: " + str(self.x), " - y:"+str(self.y)
-            # self.mapa.getMapa()
-            # self.rate.sleep()
             self.velocity_publisher.publish(vel_msg)
             self.rate.sleep()
             t1 = float(rospy.Time.now().to_sec())
@@ -267,7 +267,6 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
             tmp_distance = abs(self.odom_x)  # self.rear.range
             # print abs(tmp_distance) ,' la meta ', meta
             if abs(tmp_distance) > meta:
-
                 self.fin_hilo = True
                 self.setProbabilidad(self.x, self.y, "0.000")
                 puntos = open(
@@ -275,19 +274,11 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
                 puntos.write(str(self.x) + ',' + str(self.y)+',0,0,0' + '\n')
                 self.x += 1
                 meta += self.square_x
-                # print "mi x ", self.x, " nueva mta ", meta
                 self.setProbabilidad(self.x, self.y, self.mapa.komodo)
                 puntos.write(str(self.x) + ',' + str(self.y)+',1,1,0' + '\n')
                 puntos.close()
-                # estaba positivo pero como esta negativo el odom le pongo esto
                 tmp_distance -= self.square_x
-                # self.scan_cloud(self.cloud)
-                # if self.fin_hilo:
-                #     print "iniciando hilo"
-                #     d = threading.Thread(target=self.scan_cloud, args=(
-                #         self.cloud,), name="Daemon")
-                #     d.setDaemon(True)
-                #     d.start()
+
                 self.fin_hilo = False
             self.fin_hilo = False
             self.scan(self.left.range, "l")
@@ -296,20 +287,15 @@ class Lab8(base_subs_publ.BaseSubsPUbls):
             self.scan_cloud(self.cloud,self.x)
 
             if self.movement_stop:
-                # print self.lista_final
                 self.procesaPuntos(self.lista_final)
                 break
 
             if self.x == 0:
                 break
-        # print "fin bucle"
         vel_msg.linear.x = 0
         self.velocity_publisher.publish(vel_msg)
         self.rate.sleep()
-        # self.scan(self.left.range, "r")
-        # self.scan(self.right.range, "l")
-        # self.scan(self.rear.range, "b")
-        # self.mapa.getMapa()
+
 
     def interactua(self):
         import os

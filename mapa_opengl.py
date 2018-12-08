@@ -52,7 +52,7 @@ glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB)
 glutInitWindowSize (700, 1000)
 glutInitWindowPosition (10, 10)
 glutCreateWindow ('points and lines')
-init2D(1.0,1.0,1.0)
+init2D(0.0,0.0,0.0)
 glutDisplayFunc(display)
 glutMainLoop()
 

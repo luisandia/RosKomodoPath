@@ -85,26 +85,71 @@ class BaseSubsPUbls():
         self.vel_msg.linear.x = speed
         current_distance = abs(self.posicion.twist.twist.linear.x)
         t0 = rospy.Time.now().to_sec()
-        while(current_distance<distance): #(angulo_z > self.posicion.pose.pose.orientation.z):
+        # (angulo_z > self.posicion.pose.pose.orientation.z):
+        while(current_distance < distance):
             print "velocidad", current_distance, ' ', distance, ' ', self.posicion.twist.twist.linear.x
             self.velocity_publisher.publish(self.vel_msg)
             t1 = rospy.Time.now().to_sec()
             current_distance = abs(self.posicion.twist.twist.linear.x)*(t1-t0)
             self.rate.sleep()
-    
+
+        self.vel_msg.linear.x = 0
+        self.velocity_publisher.publish(self.vel_msg)
+        self.rate.sleep()
+
+    def mover_con_sensor(self, sensor='right', speed=0.2):
+        print "inicio"
+        self.vel_msg.linear.x = speed
+        current_distance = abs(self.posicion.twist.twist.linear.x)
+
+        detect = self.right.range
+        while self.right.range == detect:
+            a = self.right.range
+
+        inicio = False
+        salir = False
+        i = 0
+        print "moviendo"
+        while i < 2:
+            self.vel_msg.linear.x = 0.1
+            self.velocity_publisher.publish(self.vel_msg)
+            self.rate.sleep()
+
+            if self.right.range < 1.0:
+                inicio = True
+            print self.right.range
+            # muevo el primer nivel
+            if inicio:
+                salir = True
+                while self.right.range < 1.0:
+                    print self.right.range
+                    self.velocity_publisher.publish(self.vel_msg)
+                    self.rate.sleep()
+                self.move_distance(0.60, speed=0.2)
+                self.girar(89, -0.1)  # derecha
+                i += 1
+            inicio = False
+            
+            print "termine"
+
+            # if salir:
+            #     break
+        self.move_distance(2, speed=0.2)  # regresa recto
+        print "fin"
         self.vel_msg.linear.x = 0
         self.velocity_publisher.publish(self.vel_msg)
         self.rate.sleep()
 
     def girar(self, angle, speed=0.1):
-        angle=angle-2
+        angle = angle-2
         angular_speed = speed*2*pi/360*100
         relative_angle = angle*2*pi/360
 
         self.vel_msg.angular.z = angular_speed
         current_angle = abs(self.posicion.twist.twist.angular.z)
         t0 = rospy.Time.now().to_sec()
-        while(current_angle+abs(self.posicion.twist.twist.angular.z)/2< relative_angle): #(angulo_z > self.posicion.pose.pose.orientation.z):
+        # (angulo_z > self.posicion.pose.pose.orientation.z):
+        while(current_angle+abs(self.posicion.twist.twist.angular.z)/2 < relative_angle):
             # print "velocidad", angular_speed, ' ' , self.posicion.twist.twist.angular.z
             self.velocity_publisher.publish(self.vel_msg)
             t1 = rospy.Time.now().to_sec()
